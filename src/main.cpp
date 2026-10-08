@@ -1,18 +1,44 @@
 #include <Arduino.h>
+#include <LiquidCrystal_I2C.h>
+#include <Botao.h>
+#include "Telas.h"
 
-// put function declarations here:
-int myFunction(int, int);
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 
-void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+Botao btnMais(1);   
+Botao btnMenos(2);  
+Botao btnConfirmar(3);  
+
+void setup()
+{
+    lcd.init();
+    lcd.backlight();
+
+    btnMais.iniciar();
+    btnMenos.iniciar();
+    btnConfirmar.iniciar();
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-}
+void loop()
+{
+    btnMais.atualizar();
+    btnMenos.atualizar();
+    btnConfirmar.atualizar();
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+    if (btnMais.pressionou())
+    {
+        acionarBotaoMais();
+    }
+
+    if (btnMenos.pressionou())
+    {
+        acionarBotaoMenos();
+    }
+
+    if (btnConfirmar.pressionou())
+    {
+        acionarBotaoConfirmar();
+    }
+
+    gerenciarCicloPomodoro();
 }
