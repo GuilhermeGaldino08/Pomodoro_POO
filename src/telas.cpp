@@ -1,10 +1,8 @@
-#include "Telas.h"
+#include "telas.h"
 #include "estados.h"
-#include "Temporizador.h"
+#include "temporizador.h"
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
-
-LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 int estadoAtual = _configFoco;
 int tempoConfigFoco = 25;

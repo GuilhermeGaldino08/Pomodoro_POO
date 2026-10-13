@@ -1,13 +1,13 @@
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
 #include <Botao.h>
-#include "Telas.h"
-
-LiquidCrystal_I2C lcd(0x27, 20, 4);
+#include "telas.h"
 
 Botao btnMais(1);   
 Botao btnMenos(2);  
 Botao btnConfirmar(3);  
+
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 void setup()
 {
