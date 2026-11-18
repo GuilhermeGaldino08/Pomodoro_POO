@@ -25,12 +25,15 @@ void Temporizador::atualizar()
 {
     if (_estadoPomodoro && (millis() - _ultimoMillisegundo >= 1000))
     {
-        _segundosRestantes--;
+        if (_segundosRestantes > 0) { // CORREÇÃO: Garante que os segundos nunca fiquem negativos
+            _segundosRestantes--;
+        }
         _ultimoMillisegundo = millis();
     }
 }
 
-bool Temporizador::concluido() { return _segundosRestantes == 0; }
+// CORREÇÃO: Verifica se é menor ou igual a 0 por segurança
+bool Temporizador::concluido() { return _segundosRestantes <= 0; }
 
 int Temporizador::getMinutos() { return _segundosRestantes / 60; }
 
