@@ -12,13 +12,18 @@ Temporizador cronometro;
 
 int ultimoEstadoSalvo = -1;
 int ultimoSegundoSalvo = -1;
+int ultimoTempoConfigFoco = -1;      // CORREÇÃO: Variável para atualizar a tela ao apertar + ou -
+int ultimoTempoConfigDescanso = -1;  // CORREÇÃO: Variável para atualizar a tela ao apertar + ou -
+int faseAnterior = -1;               // CORREÇÃO: Variável para saber se o alerta veio do Foco ou do Descanso
 
 void desenharTelaConfigFoco()
 {
     lcd.setCursor(5, 0);
     lcd.print("Tempo de Foco");
     lcd.setCursor(6, 2);
+    if (tempoConfigFoco < 10) lcd.print("0"); 
     lcd.print(tempoConfigFoco);
+    lcd.print(" min "); 
 }
 
 void desenharTelaConfigDescanso()
@@ -26,7 +31,9 @@ void desenharTelaConfigDescanso()
     lcd.setCursor(3, 0);
     lcd.print("Tempo de descanso");
     lcd.setCursor(6, 2);
+    if (tempoConfigDescanso < 10) lcd.print("0"); 
     lcd.print(tempoConfigDescanso);
+    lcd.print(" min "); 
 }
 
 void desenharTelaCronometroFoco()
@@ -36,12 +43,10 @@ void desenharTelaCronometroFoco()
     lcd.setCursor(7, 2);
     int minutos = cronometro.getMinutos();
     int segundos = cronometro.getSegundos();
-    if (minutos < 10)
-        lcd.print("0");
+    if (minutos < 10) lcd.print("0");
     lcd.print(minutos);
     lcd.print(":");
-    if (segundos < 10)
-        lcd.print("0");
+    if (segundos < 10) lcd.print("0");
     lcd.print(segundos);
 }
 
@@ -52,12 +57,10 @@ void desenharTelaCronometroDescanso()
     lcd.setCursor(7, 2);
     int minutos = cronometro.getMinutos();
     int segundos = cronometro.getSegundos();
-    if (minutos < 10)
-        lcd.print("0");
+    if (minutos < 10) lcd.print("0");
     lcd.print(minutos);
     lcd.print(":");
-    if (segundos < 10)
-        lcd.print("0");
+    if (segundos < 10) lcd.print("0");
     lcd.print(segundos);
 }
 
@@ -74,10 +77,17 @@ void gerenciarCicloPomodoro()
     cronometro.atualizar();
     int segundoAtual = cronometro.getSegundos();
 
-    if (estadoAtual != ultimoEstadoSalvo || segundoAtual != ultimoSegundoSalvo)
+    bool mudouEstado = (estadoAtual != ultimoEstadoSalvo);
+    bool mudouSegundo = (segundoAtual != ultimoSegundoSalvo);
+    bool mudouConfigFoco = (estadoAtual == _configFoco && tempoConfigFoco != ultimoTempoConfigFoco);
+    bool mudouConfigDescanso = (estadoAtual == _configDescanso && tempoConfigDescanso != ultimoTempoConfigDescanso);
+
+    if (mudouEstado || mudouSegundo || mudouConfigFoco || mudouConfigDescanso)
     {
         ultimoEstadoSalvo = estadoAtual;
         ultimoSegundoSalvo = segundoAtual;
+        ultimoTempoConfigFoco = tempoConfigFoco;
+        ultimoTempoConfigDescanso = tempoConfigDescanso;
 
         lcd.clear();
 
@@ -95,6 +105,8 @@ void gerenciarCicloPomodoro()
 
     if (cronometro.concluido() && (estadoAtual == _contandoFoco || estadoAtual == _contandoDescanso))
     {
+        faseAnterior = estadoAtual; // CORREÇÃO: Salva de onde viemos antes de ir para o alerta
+        cronometro.pausar();        // CORREÇÃO: Pausa o cronômetro para não contar negativo
         estadoAtual = _alertaFim;
     }
 }
@@ -152,9 +164,17 @@ void acionarBotaoConfirmar()
         break;
 
     case _alertaFim:
-        cronometro.configurar(tempoConfigDescanso);
-        cronometro.iniciar();
-        estadoAtual = _contandoDescanso;
+        // CORREÇÃO: Verifica de onde o alerta veio para decidir qual é o próximo passo
+        if (faseAnterior == _contandoFoco) {
+            cronometro.configurar(tempoConfigDescanso);
+            cronometro.iniciar();
+            estadoAtual = _contandoDescanso;
+        } else {
+            // Se acabou o descanso, inicia um novo ciclo de Foco automaticamente
+            cronometro.configurar(tempoConfigFoco);
+            cronometro.iniciar();
+            estadoAtual = _contandoFoco;
+        }
         break;
     }
 }
